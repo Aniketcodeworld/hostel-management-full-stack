@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id                String              @id @default(cuid())
+  number            String              @unique
+  floor             String
+  type              String
+  status            RoomStatus          @default(AVAILABLE)
+  price             Float
+  capacity          Int
+  amenities         Amenity[]
+  maintenanceHistory MaintenanceRecord[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model Amenity {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  rooms       Room[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MaintenanceRecord {
+  id          String   @id @default(cuid())
+  room        Room     @relation(fields: [roomId], references: [id])
+  roomId      String
+  type        String
+  description String
+  severity    String
+  date        DateTime
+  status      MaintenanceStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Student {
+  id               String   @id @default(cuid())
+  name             String   @db.VarChar(255)
+  email            String   @unique
+  phone            String?
+  bio              String?
+  lookingForRoommate Boolean @default(false)
+  preferences      StudentPreference?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([name])
+  @@check(name ~ '^[A-Za-z\\s]+$')
+}
+
+model StudentPreference {
+  id            String   @id @default(cuid())
+  student       Student  @relation(fields: [studentId], references: [id])
+  studentId     String   @unique
+  studyHabits   String?
+  sleepSchedule String?
+  cleanliness   String?
+  interests     String?
+  languages     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+} 
